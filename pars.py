@@ -2,11 +2,11 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 
-# pages_num = list(range(1,26))
-# raw_link = 'https://www.kivano.kg/mobilnye-telefony?page='
-# links = []
-# for x in pages_num:
-#     links.append(raw_link + str(x))
+pages_num = list(range(1,26))
+raw_link = 'https://www.kivano.kg/mobilnye-telefony?page='
+links = []
+for x in pages_num:
+    links.append(raw_link + str(x))
 
 
 def get_html(url):
@@ -14,53 +14,35 @@ def get_html(url):
     return res.text
 
 
-
-max_page = 25
-pages = []
-
-for x in range(1,max_page + 1):
-    pages.append('https://www.kivano.kg/mobilnye-telefony?page=' + str(x))
-
-
 def get_page_data(html):
     soup = BeautifulSoup(html, 'html.parser')
-    items = soup.find_all('div', class_ = 'item product_listbox oh')
-    tels = []
-    for item in items :
-        tels.append (
-            {
-                'name' : item.find('div', class_ = 'listbox_title oh').find('a').get_text(strip = True),
-                'price' : item.find('div', class_ = 'listbox_price text-center').find('strong').get_text(strip = True),
-                'image' : item.find('div',class_ = 'listbox_img pull-left').find_all('img src')
-            }
-        )
+    try:
+        name = soup.find('div', class_='listbox_title oh').get_text(strip=True)
+    except:
+        name = ''
 
-    print(tels)
-
-        # try:
-    #     price = soup.find(class_='listbox_price text-center')
-    # except:
-    #     price = ''
-    # try:
-    #     photo = soup.find(class_='listbox_img pull-left')
-    # except:
-    #     photo = ''
-    # data = {'name': name, 'price': price, 'photo': photo}
-#     print(tels)
+    try:
+        price = soup.find('div', class_='listbox_price text-center').get_text(strip=True)
+    except:
+        price = ''
+    try:
+        photo = soup.find('div', class_='listbox_img pull-left').get_text(strip=True)
+    except:
+        photo = ''
+    data = {'name': name, 'price': price, 'photo': photo}
+    return data
 
 def write_csv(data):
     with open('phones.csv', 'a') as file:
         writer = csv.writer(file)
-        writer.writerow([data['name'], data['price'], data['image']])
-        print([data['name'], data['price'], data['image']], 'parsed')
+        writer.writerow([data['name'], data['price'], data['photo']])
+        print([data['name'], data['price'], data['photo']], 'parsed')
 
 def main():
-    tels = []
-    for page in pages:
-        html = get_html(pages)
-        data = get_page_data(html)
-        write_csv(data)
+        for link in links:
+            html = get_html(link)
+            data = get_page_data(html)
+            write_csv(data)
 
-
-if __name__ == "__main__":
+if name == "__main__":
     main()
